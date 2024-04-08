@@ -24,8 +24,8 @@ v= {"ol": [0.5*min(df['Orientation_Loss']),1.5*max(df['Orientation_Loss'])],
 corr_vals = [list(df.corr()['Zoom'])[:5],list(df.corr()['Focus'])[:5],list(df.corr()['Contrast'])[:5]]
 
 if __name__ == '__main__':
-    #scenario = 'simple'
-    scenario = 'simple_adversary'
+
+    scenario = 'rise_simple_spread'
     
     env = NewEnv(df=df,corr_vals=corr_vals)
     n_agents = env.n_agents

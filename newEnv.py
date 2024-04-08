@@ -67,22 +67,22 @@ class NewEnv(gym.Env):
         #OL
         print(self.correlations(actions,0,0.1,0))
         if self.gamma*self.zoomdeps['Orientation_Loss'] <= self.correlations(actions,0,0.1,0).any() <= self.gamma_decay*self.zoomdeps['Orientation_Loss']:
-            rewardZ+= 3
+            rewardZ+= abs(sum(self.correlations(actions,0,0.1,0)))*10
             flagZ.append('a')
         
         #EC
         if self.gamma*self.zoomdeps['Edge_Coverage'] <= self.correlations(actions,0,0.1,1).any() <= self.gamma_decay*self.zoomdeps['Edge_Coverage']:
-            rewardZ+= 3
+            rewardZ+= abs(sum(self.correlations(actions,0,0.1,1)))*10
             flagZ.append('b')
         
         #AT
         if self.gamma_decay*self.zoomdeps['Average_Thickness'] <= self.correlations(actions,0,0.1,2).any() <= self.gamma*self.zoomdeps['Average_Thickness']:
-            rewardZ+= 3
+            rewardZ+= abs(sum(self.correlations(actions,0,0.1,2)))*10
             flagZ.append('c')
             
         #AS
         if self.gamma_decay*self.zoomdeps['Average_Separation'] <= self.correlations(actions,0,0.1,3).any() <= self.gamma*self.zoomdeps['Average_Separation']:
-            rewardZ+= 3
+            rewardZ+= abs(sum(self.correlations(actions,0,0.1,3)))*10
             flagZ.append('d')
         
         if flagZ == list(set(['a','b','c','d'])):
@@ -95,12 +95,12 @@ class NewEnv(gym.Env):
         #Agent-2
         #EC
         if self.gamma_decay*self.focusdeps['Edge_Coverage'] <= self.correlations(actions,1,0.05,1).any() <= self.gamma*self.focusdeps['Edge_Coverage']:
-            rewardF+= 3
+            rewardF+= abs(sum(self.correlations(actions,1,0.05,1)))*10
             flagF.append('e')
         
         #AS
         if self.gamma*self.focusdeps['Average_Separation'] <= self.correlations(actions,1,0.05,3).any() <= self.gamma_decay*self.focusdeps['Average_Separation']:
-            rewardF+= 3
+            rewardF+= abs(sum(self.correlations(actions,1,0.05,3)))*10
             flagF.append('f')
         
         if flagF == list(set(['e','f'])):
@@ -112,11 +112,11 @@ class NewEnv(gym.Env):
         #Agent-3
         #OL
         if self.gamma*self.contrastdeps['Orientation_Loss'] <= self.correlations(actions,2,0.02,0).any() <= self.gamma_decay*self.contrastdeps['Orientation_Loss']:
-            rewardC+= 3
+            rewardC+= abs(sum(self.correlations(actions,2,0.02,0)))*10
             flagC.append('g')
         #AT
         if self.gamma_decay*self.contrastdeps['Average_Thickness'] <= self.correlations(actions,2,0.02,2).any() <= self.gamma*self.contrastdeps['Average_Thickness']:
-            rewardC+= 3
+            rewardC+= abs(sum(self.correlations(actions,2,0.02,2)))*10
             flagC.append('g') 
         
         if flagC== list(set(['g','f'])):
