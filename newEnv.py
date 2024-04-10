@@ -35,7 +35,8 @@ class NewEnv(gym.Env):
         #self.state = [np.array([random.uniform(0,1) for _ in range(len(df))])]*5
         #Applied Min-Max scaler so all actions and observations are in range [0,1]
         
-        self.action_space = [spaces.Box(low=0.0,high=1.0,dtype=np.float32)]*self.n_agents
+        # self.action_space = [spaces.Box(low=0.0,high=1.0,dtype=np.float32)]*self.n_agents
+        self.action_space =  [spaces.Box(low=0.0,high=1.0,dtype=np.float32)]
         #Values of the 5 target parameters which are continuous
         self.observation_space = [spaces.Box(low=0.0,high=1.0,shape=(len(self.df),),dtype=np.float32)]*5
 
@@ -62,10 +63,10 @@ class NewEnv(gym.Env):
         rewardZ,rewardF,rewardC = 0,0,0
         flagZ,flagF,flagC = [],[],[]
 
-
+        # print("actions: ",actions)
         #Agent- 1
         #OL
-        print(self.correlations(actions,0,0.1,0))
+        # print(self.correlations(actions,0,0.1,0))
         if self.gamma*self.zoomdeps['Orientation_Loss'] <= self.correlations(actions,0,0.1,0).any() <= self.gamma_decay*self.zoomdeps['Orientation_Loss']:
             rewardZ+= abs(sum(self.correlations(actions,0,0.1,0)))*10
             flagZ.append('a')

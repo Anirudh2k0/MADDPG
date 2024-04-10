@@ -32,8 +32,21 @@ class Agent:
         actions = self.actor.forward(state)
         noise = T.rand(self.n_actions).to(self.actor.device)
         action = actions + noise
-
+        # print('------------')
+        # print(action)
         return action.detach().cpu().numpy()[0]
+
+    # def choose_action(self, observation):
+    #     actions = []
+    #     observation = np.array(observation)
+    #     state = T.tensor([observation], dtype=T.float).to(self.actor.device)
+    #     for agent_idx, agent in enumerate(self.agents):
+    #         action = agent.actor.forward(state)
+    #         noise = T.rand(self.n_actions).to(self.actor.device)
+    #         action = action + noise
+    #         actions.append(action.detach().cpu().numpy()[0])
+        
+    #     return np.array(actions)
 
     def update_network_parameters(self, tau=None):
         if tau is None:

@@ -29,9 +29,11 @@ class MADDPG:
     def choose_action(self, raw_obs):
         actions = []
         for agent_idx, agent in enumerate(self.agents):
+            
             action = agent.choose_action(raw_obs[agent_idx])
             actions.append(action)
         return actions
+        # return self.agents
     
     T.autograd.set_detect_anomaly(True)
     def learn(self, memory):

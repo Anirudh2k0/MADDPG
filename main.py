@@ -58,23 +58,25 @@ if __name__ == '__main__':
         maddpg_agents.load_checkpoint()
 
     for i in range(N_GAMES):
+        print(f'Game number: {i}')
         obs = env.reset()
         score = 0
         done = [False]*n_agents
         episode_step = 0
-        for _ in range(100):
+        for _ in range(500):
             if evaluate:
                 env.render()
             actions = maddpg_agents.choose_action(obs)
+            
             obs_, reward, done, info = env.step(actions)
 
             state = obs_list_to_state_vector(obs)
             state_ = obs_list_to_state_vector(obs_)
-            print('----------------------')
-            print(f'state: {state.shape}')
-            print('----------------------')
-            print(f'state_: {state_.shape}')
-            print('----------------------')
+            # print('----------------------')
+            # print(f'state: {state.shape}')
+            # print('----------------------')
+            # print(f'state_: {state_.shape}')
+            # print('----------------------')
             reward_1 = reward[0]
             reward_2 = reward[1]
             reward_3 = reward[2]
@@ -120,7 +122,8 @@ if __name__ == '__main__':
     plt.ylabel('Reward')
     plt.title('Rewards for Each Agent')
     plt.legend()
-    plt.show()
+    plt.savefig('rewards_plot.png') 
+    # plt.show()
 
 # import numpy as np
 # from maddpg import MADDPG
