@@ -66,7 +66,7 @@ class NewEnv(gym.Env):
         # print("actions: ",actions)
         #Agent- 1
         #OL
-        # print(self.correlations(actions,0,0.1,0))
+        #print(self.correlations(actions,0,0.1,0))
         if self.gamma*self.zoomdeps['Orientation_Loss'] <= self.correlations(actions,0,0.1,0).any() <= self.gamma_decay*self.zoomdeps['Orientation_Loss']:
             rewardZ+= abs(sum(self.correlations(actions,0,0.1,0)))*10
             flagZ.append('a')
