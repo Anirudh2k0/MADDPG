@@ -36,7 +36,7 @@ class NewEnv(gym.Env):
         #Applied Min-Max scaler so all actions and observations are in range [0,1]
         
         # self.action_space = [spaces.Box(low=0.0,high=1.0,dtype=np.float32)]*self.n_agents
-        self.action_space =  [spaces.Box(low=-1.0,high=1.0,dtype=np.float32)]
+        self.action_space =  [spaces.Box(low=0.0,high=1.0,dtype=np.float32)]
         #Values of the 5 target parameters which are continuous
         self.observation_space = [spaces.Box(low=0.0,high=1.0,shape=(len(self.df),),dtype=np.float32)]*5
 
@@ -67,7 +67,7 @@ class NewEnv(gym.Env):
         # factor: zoom = 0.2, focus = 0.1, contrast = 0.1
         # param: {"OL": 0, "EC":1, "AT":2, "AS": 3, "DE": 4}
         
-        return np.corrcoef(np.array(np.random.uniform((1-factor)*actions[i],(1+factor)*actions[i],len(self.df))).ravel(),self.state[param].ravel())[0][1]
+        return np.corrcoef(np.array(np.random.uniform((1-factor)*actions[i],(1+factor)*actions[i],len(self.df))).ravel(),self.state[param].ravel())
 
     def step(self,actions):
         rewardZ,rewardF,rewardC = 0,0,0
@@ -80,28 +80,27 @@ class NewEnv(gym.Env):
   
 
         #For the choosen actions, 
-        # print(self.gammaRanges['zol'][0]*self.zoomdeps['Orientation_Loss'])
-        print(f'actions: {actions}')
-        if self.gammaRanges['zol'][0]*self.zoomdeps['Orientation_Loss'] <= self.correlations(actions,0,0.3,0) <= self.gammaRanges['zol'][1]*self.zoomdeps['Orientation_Loss']:
-            rewardZ+= abs(self.correlations(actions,0,0.3,0))*10
+        print(self.correlations(actions,0,0.3,0)[0][1])
+        if self.gammaRanges['zol'][0]*self.zoomdeps['Orientation_Loss'] <= self.correlations(actions,0,0.3,0).any() <= self.gammaRanges['zol'][1]*self.zoomdeps['Orientation_Loss']:
+            rewardZ+= abs(sum(self.correlations(actions,0,0.3,0)))*10
             flagZ.append('a')
             print(1)
         
         #EC
-        if self.gammaRanges['zec'][0]*self.zoomdeps['Edge_Coverage'] <= self.correlations(actions,0,0.3,1) <= self.gammaRanges['zec'][1]*self.zoomdeps['Edge_Coverage']:
-            rewardZ+= abs(self.correlations(actions,0,0.3,1))*10
+        if self.gammaRanges['zec'][0]*self.zoomdeps['Edge_Coverage'] <= self.correlations(actions,0,0.3,1).any() <= self.gammaRanges['zec'][1]*self.zoomdeps['Edge_Coverage']:
+            rewardZ+= abs(sum(self.correlations(actions,0,0.3,1)))*10
             flagZ.append('b')
             print(2)
         
         #AT
-        if self.gammaRanges['zat'][0]*self.zoomdeps['Average_Thickness'] <= self.correlations(actions,0,0.3,2) <= self.gammaRanges['zat'][1]*self.zoomdeps['Average_Thickness']:
-            rewardZ+= abs(self.correlations(actions,0,0.3,2))*10
+        if self.gammaRanges['zat'][0]*self.zoomdeps['Average_Thickness'] <= self.correlations(actions,0,0.3,2).any() <= self.gammaRanges['zat'][1]*self.zoomdeps['Average_Thickness']:
+            rewardZ+= abs(sum(self.correlations(actions,0,0.3,2)))*10
             flagZ.append('c')
             print(3)
             
         #AS
-        if self.gammaRanges['zas'][0]*self.zoomdeps['Average_Separation'] <= self.correlations(actions,0,0.3,3) <= self.gammaRanges['zat'][1]*self.zoomdeps['Average_Separation']:
-            rewardZ+= abs(self.correlations(actions,0,0.3,3))*10
+        if self.gammaRanges['zas'][0]*self.zoomdeps['Average_Separation'] <= self.correlations(actions,0,0.3,3).any() <= self.gammaRanges['zat'][1]*self.zoomdeps['Average_Separation']:
+            rewardZ+= abs(sum(self.correlations(actions,0,0.3,3)))*10
             flagZ.append('d')
             print(4)
         
@@ -114,14 +113,14 @@ class NewEnv(gym.Env):
 
         #Agent-2
         #EC
-        if self.gammaRanges['fec'][0]*self.focusdeps['Edge_Coverage'] <= self.correlations(actions,1,0.2,1) <= self.gammaRanges['fec'][1]*self.focusdeps['Edge_Coverage']:
-            rewardF+= abs(self.correlations(actions,1,0.2,1))*10
+        if self.gammaRanges['fec'][0]*self.focusdeps['Edge_Coverage'] <= self.correlations(actions,1,0.2,1).any() <= self.gammaRanges['fec'][1]*self.focusdeps['Edge_Coverage']:
+            rewardF+= abs(sum(self.correlations(actions,1,0.2,1)))*10
             flagF.append('e')
             print(5)
         
         #AS
-        if self.gammaRanges['fas'][0]*self.focusdeps['Average_Separation'] <= self.correlations(actions,1,0.2,3) <= self.gammaRanges['fas'][1]*self.focusdeps['Average_Separation']:
-            rewardF+= abs(self.correlations(actions,1,0.2,3))*10
+        if self.gammaRanges['fas'][0]*self.focusdeps['Average_Separation'] <= self.correlations(actions,1,0.2,3).any() <= self.gammaRanges['fas'][1]*self.focusdeps['Average_Separation']:
+            rewardF+= abs(sum(self.correlations(actions,1,0.2,3)))*10
             flagF.append('f')
             print(6)
         
@@ -133,13 +132,13 @@ class NewEnv(gym.Env):
         
         #Agent-3
         #OL
-        if self.gammaRanges['col'][0]*self.contrastdeps['Orientation_Loss'] <= self.correlations(actions,2,0.2,0) <= self.gammaRanges['col'][1]*self.contrastdeps['Orientation_Loss']:
-            rewardC+= abs(self.correlations(actions,2,0.2,0))*10
+        if self.gammaRanges['col'][0]*self.contrastdeps['Orientation_Loss'] <= self.correlations(actions,2,0.2,0).any() <= self.gammaRanges['col'][1]*self.contrastdeps['Orientation_Loss']:
+            rewardC+= abs(sum(self.correlations(actions,2,0.2,0)))*10
             flagC.append('g')
             print(7)
         #AT
-        if self.gammaRanges['cat'][0]*self.contrastdeps['Average_Thickness'] <= self.correlations(actions,2,0.2,2) <= self.gammaRanges['cat'][1]*self.contrastdeps['Average_Thickness']:
-            rewardC+= abs(self.correlations(actions,2,0.2,2))*10
+        if self.gammaRanges['cat'][0]*self.contrastdeps['Average_Thickness'] <= self.correlations(actions,2,0.2,2).any() <= self.gammaRanges['cat'][1]*self.contrastdeps['Average_Thickness']:
+            rewardC+= abs(sum(self.correlations(actions,2,0.2,2)))*10
             flagC.append('g') 
             print(8)
         
@@ -151,8 +150,7 @@ class NewEnv(gym.Env):
         
         #correlations function calculates the correlation between two arrays,so need to update the state based on agent actions 
         #within the step function. Using actions to calculate the correlations. 
-            
-        # CORRELATIONS BETWEEN VALUES IN THE DF DO NOT CHANGE. SO OBSERVATIONS CAN REMAIN CONSTANT#
+
         observations = self.state
 
         return observations, [rewardZ,rewardF,rewardC], [doneZ,doneF,doneC], {}
@@ -161,8 +159,7 @@ class NewEnv(gym.Env):
 
     def reset(self):
         # return [self.df[i].to_numpy() for i in ['Orientation_Loss','Edge_Coverage','Average_Thickness','Average_Separation','Distance_Entropy']]
-        # return [np.array([random.uniform(0,1) for _ in range(len(df))])]*5
-        return [np.random.uniform(0,1,len(df)),np.random.uniform(0,1,len(df)),np.random.uniform(0,1,len(df)),np.random.uniform(0,1,len(df)),np.random.uniform(0,1,len(df))]
+        return [np.array([random.uniform(0,1) for _ in range(len(df))])]*5
 
     def close(self):
         pass

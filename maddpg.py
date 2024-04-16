@@ -1,5 +1,6 @@
 import torch as T
 import torch.nn.functional as F
+import numpy as np
 from agent import Agent
 
 class MADDPG:
@@ -28,12 +29,21 @@ class MADDPG:
 
     def choose_action(self, raw_obs):
         actions = []
+        combined_action =  np.zeros(self.n_actions)
         for agent_idx, agent in enumerate(self.agents):
             
-            action = agent.choose_action(raw_obs[agent_idx])
+            action = agent.choose_action_agent(raw_obs[agent_idx])
+            combined_action += action
             actions.append(action)
-        return actions
-        # return self.agents
+        combined_action/=self.n_actions
+        # combined_action = [actions[0][0]+actions[1][0]+actions[2][0],actions[0][1]+actions[1][1]+actions[2][1],actions[0][2]+actions[1][2]+actions[2][2]]
+        combined_action = [sum(a)/self.n_agents for a in zip(*actions)]
+        # print(combined_action)
+        # print(actions)
+        # print('------------')
+        # print(combined_action)
+        return combined_action
+        # return actions
     
     T.autograd.set_detect_anomaly(True)
     def learn(self, memory):
@@ -46,7 +56,8 @@ class MADDPG:
         device = self.agents[0].actor.device
 
         states1 = T.tensor(states, dtype=T.float).to(device)
-        actions1 = T.tensor(actions, dtype=T.float).to(device)
+        # actions1 = T.tensor(actions, dtype=T.float).to(device)
+        actions1 = T.tensor(np.array(actions), dtype=T.float).to(device)
         rewards1 = T.tensor(rewards,dtype=T.float).to(device)
         states_1 = T.tensor(states_, dtype=T.float).to(device)
         dones1 = T.tensor(dones).to(device)

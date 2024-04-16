@@ -55,7 +55,8 @@ class ActorNetwork(nn.Module):
         
         y = F.relu(self.fc1(state))
         x = F.relu(self.fc2(y))
-        pi = T.softmax(self.pi(x), dim=1)
+        # pi = T.softmax(self.pi(x), dim=1)
+        pi = T.tanh(self.pi(x))
 
         return pi
 

@@ -46,7 +46,7 @@ if __name__ == '__main__':
                         n_actions, n_agents, batch_size=1024)
 
     PRINT_INTERVAL = 50
-    N_GAMES = 5000
+    N_GAMES = 500
     MAX_STEPS = 25
     total_steps = 0
     score_history = []
@@ -63,11 +63,11 @@ if __name__ == '__main__':
         score = 0
         done = [False]*n_agents
         episode_step = 0
-        for _ in range(500):
+        for _ in range(200):
             if evaluate:
                 env.render()
             actions = maddpg_agents.choose_action(obs)
-            
+            # print(actions)
             obs_, reward, done, info = env.step(actions)
 
             state = obs_list_to_state_vector(obs)
