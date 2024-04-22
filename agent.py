@@ -1,10 +1,11 @@
 import torch as T
 from networks import ActorNetwork, CriticNetwork
 import numpy as np
+import random
 
 class Agent:
     def __init__(self, actor_dims, critic_dims, n_actions, n_agents, agent_idx, chkpt_dir,
-                    alpha=0.01, beta=0.01, fc1=64, 
+                    alpha=0.001, beta=0.01, fc1=64, 
                     fc2=64, gamma=0.95, tau=0.01):
         self.gamma = gamma
         self.tau = tau
@@ -27,12 +28,15 @@ class Agent:
         
 
     def choose_action_agent(self, observation):
-        observation = np.array(observation)
+        # T.manual_seed(42)
+        # observation = np.array(observation)
         state = T.tensor(np.array([observation]), dtype=T.float).to(self.actor.device)
         actions = self.actor.forward(state)
         noise = T.rand(self.n_actions).to(self.actor.device)
-        action = actions + noise
-        return action.detach().cpu().numpy()[0]
+        action = random.choice([actions + noise, actions-noise])
+        # action = actions
+        actionRet = T.clamp(action, min=-1, max=1)
+        return actionRet.detach().cpu().numpy()[0]
 
     # def choose_action(self, observation):
     #     actions = []

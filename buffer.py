@@ -3,6 +3,9 @@ import numpy as np
 class MultiAgentReplayBuffer:
     def __init__(self, max_size, critic_dims, actor_dims, 
             n_actions, n_agents, batch_size):
+        
+        np.random.seed(42)
+
         self.mem_size = max_size
         self.mem_cntr = 0
         self.n_agents = n_agents
@@ -27,8 +30,10 @@ class MultiAgentReplayBuffer:
                             np.zeros((self.mem_size, self.actor_dims[i])))
             self.actor_new_state_memory.append(
                             np.zeros((self.mem_size, self.actor_dims[i])))
+            # self.actor_action_memory.append(
+            #                 np.zeros((self.mem_size, self.n_actions)))
             self.actor_action_memory.append(
-                            np.zeros((self.mem_size, self.n_actions)))
+                            np.zeros((self.mem_size, self.n_actions[i])))
 
 
     def store_transition(self, raw_obs, state, action, reward, 
@@ -48,6 +53,7 @@ class MultiAgentReplayBuffer:
 
 
         for agent_idx in range(self.n_agents):
+            # print('agent_idx',agent_idx)
             self.actor_state_memory[agent_idx][index] = raw_obs[agent_idx]
             self.actor_new_state_memory[agent_idx][index] = raw_obs_[agent_idx]
             self.actor_action_memory[agent_idx][index] = action[agent_idx]
@@ -65,11 +71,13 @@ class MultiAgentReplayBuffer:
 
         self.state_memory[index] = state
         self.new_state_memory[index] = state_
-        self.reward_memory[index] = reward
+        self.reward_memory[index] = reward 
+        # self.reward_memory[index] = np.array(reward).reshape(1, -1)
         self.terminal_memory[index] = done
         self.mem_cntr += 1
 
     def sample_buffer(self):
+        np.random.seed(42)
         max_mem = min(self.mem_cntr, self.mem_size)
 
         batch = np.random.choice(max_mem, self.batch_size, replace=False)
