@@ -149,7 +149,7 @@ class RiseEnv(gym.Env):
     info = self._get_info(self.state)
     rewards = [rewardZ,rewardF,rewardC]
     done = [doneZ,doneF,doneC]
-
+    
     return observations, rewards, done, info, next_state
     
 

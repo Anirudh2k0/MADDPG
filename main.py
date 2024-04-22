@@ -2,15 +2,20 @@ import numpy as np
 import pandas as pd
 from maddpg import MADDPG
 from buffer import MultiAgentReplayBuffer
-from newEnv import NewEnv
+from latest import NewEnv
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
 
 def obs_list_to_state_vector(observation):
     state = np.array([])
     for obs in observation:
         state = np.concatenate([state, obs])
     return state
-df = pd.read_excel('Data/FinalData.xlsx')
+dfOrig = pd.read_excel('Data/FinalData.xlsx')
+scaler = MinMaxScaler()
+df = dfOrig.copy()
+df[['Orientation_Loss','Edge_Coverage','Average_Thickness','Average_Separation','Zoom','Focus','Contrast']] = scaler.fit_transform(df[['Orientation_Loss','Edge_Coverage','Average_Thickness','Average_Separation','Zoom','Focus','Contrast']])
+
 
 v= {"ol": [0.5*min(df['Orientation_Loss']),1.5*max(df['Orientation_Loss'])],
         "ec": [0.5*min(df['Edge_Coverage']),1.5*max(df['Edge_Coverage'])],
@@ -36,7 +41,9 @@ if __name__ == '__main__':
 
     # action space is a list of arrays, assume each agent has same action space
     # n_actions = env.action_space[0].n
-    n_actions = 3
+    # n_actions = 3
+    n_actions = [4,4,4]   #Correlations [zoom has 4, focus and contrast have 2, the other 2 are just paddings, that the env dont consider]
+    # If the n_actions are of diffent shapes, we need to pad them later as tensor does not accept, so just putting 4,4,4 now and neglecting them in environement
     maddpg_agents = MADDPG(actor_dims, critic_dims, n_agents, n_actions, 
                            fc1=64, fc2=64,  
                            alpha=0.01, beta=0.01, scenario=scenario,
@@ -46,13 +53,14 @@ if __name__ == '__main__':
                         n_actions, n_agents, batch_size=1024)
 
     PRINT_INTERVAL = 50
-    N_GAMES = 500
-    MAX_STEPS = 25
+    N_GAMES = 300
+    MAX_STEPS = 80
     total_steps = 0
     score_history = []
+    reward_1_history,reward_2_history,reward_3_history = [],[],[]
     evaluate = False
     best_score = 0
-    rewards_list_1, rewards_list_2, rewards_list_3 = [], [], []
+    
 
     if evaluate:
         maddpg_agents.load_checkpoint()
@@ -61,9 +69,12 @@ if __name__ == '__main__':
         print(f'Game number: {i}')
         obs = env.reset()
         score = 0
+        reward1,reward2,reward3 = 0,0,0
         done = [False]*n_agents
         episode_step = 0
-        for _ in range(200):
+        # for _ in range(100):
+        while not all(done):
+        # for _ in range(100):
             if evaluate:
                 env.render()
             actions = maddpg_agents.choose_action(obs)
@@ -77,9 +88,7 @@ if __name__ == '__main__':
             # print('----------------------')
             # print(f'state_: {state_.shape}')
             # print('----------------------')
-            reward_1 = reward[0]
-            reward_2 = reward[1]
-            reward_3 = reward[2]
+            
 
             if episode_step >= MAX_STEPS:
                 done = [True]*n_agents
@@ -87,18 +96,25 @@ if __name__ == '__main__':
             memory.store_transition(obs, state, actions, reward, obs_, state_, done)
 
             if total_steps % 100 == 0 and not evaluate:
+               
                 maddpg_agents.learn(memory)
 
             obs = obs_
-
+            
             score += sum(reward)
+            reward1 += reward[0]
+            reward2 += reward[1]
+            reward3 += reward[2]
             total_steps += 1
             episode_step += 1
 
+            # print(f'Info: {info}')
+
         score_history.append(score)
-        rewards_list_1.append(reward_1)
-        rewards_list_2.append(reward_2)
-        rewards_list_3.append(reward_3)
+        reward_1_history.append(reward1)
+        reward_2_history.append(reward2)
+        reward_3_history.append(reward3)
+        
         avg_score = np.mean(score_history[-100:])
         
         if not evaluate:
@@ -113,16 +129,38 @@ if __name__ == '__main__':
             
             print('episode', i, 'average score {:.1f}'.format(avg_score))
             # print(1)
+        
+        
 
     print(f'Total Score: {score_history}')
-    plt.plot(rewards_list_1, label='Agent 1')
-    plt.plot(rewards_list_2, label='Agent 2')
-    plt.plot(rewards_list_3, label='Agent 3')
+    ##Incremental Score History:  As distance between correlations decreases, reward decreases
+    #But that is ok as this is what we want.
+    #But to show an incremental value, we need to calculate an incremental score history
+    max_score,max_reward1,max_reward2,max_reward3 = max(score_history),max(reward_1_history),max(reward_2_history),max(reward_3_history)
+    incremental_score_history = [max_score-i for i in score_history]
+    incremental_reward1_history = [max_reward1-i for i in reward_1_history]
+    incremental_reward2_history = [max_reward2-i for i in reward_2_history]
+    incremental_reward3_history = [max_reward3-i for i in reward_3_history]
+
+
+    
+    plt.figure()
+    plt.plot(incremental_reward1_history, label='Agent 1')
+    plt.plot(incremental_reward2_history, label='Agent 2')
+    plt.plot(incremental_reward3_history, label='Agent 3')
     plt.xlabel('Episode')
     plt.ylabel('Reward')
     plt.title('Rewards for Each Agent')
     plt.legend()
     plt.savefig('rewards_plot.png') 
+
+    plt.figure()
+    plt.plot(incremental_score_history)
+    plt.xlabel('Episode')
+    plt.ylabel('Total Score')
+    plt.title('Total Score per Episode')
+    plt.savefig('total_score_plot.png')
+
     # plt.show()
 
 # import numpy as np
